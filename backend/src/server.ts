@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use('/api', apiRouter);
 
 // Serve static frontend assets if built
-const frontendDistPath = path.resolve(process.cwd(), '../frontend/dist');
+const frontendDistPath = path.resolve(process.cwd(), 'frontend/dist');
 const localDistPublic = path.resolve(process.cwd(), './public');
 
 if (fs.existsSync(frontendDistPath)) {
