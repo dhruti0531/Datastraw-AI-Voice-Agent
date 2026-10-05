@@ -52,7 +52,43 @@ This application provides a seamless browser-based voice customer support experi
 - **📜 Live Transcript & Tool Execution Chips**: Displays chronological dialogues and inspection details of executed tool calls.
 - **📊 Post-Call Structured JSON Summary**: Generates schema-compliant JSON capturing customer intent, order ID, product, policy referenced, and resolution status.
 - **📦 Evaluator Test Orders Helper**: On-screen cards for `ORD-101`, `ORD-102`, and `ORD-103` with 1-click test triggers.
+- **🛡️ Dual Mode Architecture (OpenAI Mode + Free Local Demo Mode)**: Zero-friction evaluation even without active API credits or when OpenAI returns HTTP 429 quota limits.
 - **🔒 Secure Architecture**: Protects backend API keys and provides a client-side configuration drawer for custom evaluation keys.
+
+---
+
+## ⚡ 2.1 Dual Operation Modes: Cloud OpenAI Mode vs. Free Local Demo Mode
+
+The application is engineered with a **Resilient Dual-Mode Architecture**:
+
+| Capability | 🌟 Cloud OpenAI Mode | 🆓 Free Local Demo Mode |
+| :--- | :--- | :--- |
+| **Trigger Condition** | Valid `OPENAI_API_KEY` present with active quota credits | Unconfigured key, expired credits, or OpenAI HTTP `429 insufficient_quota` |
+| **Voice Recognition (STT)** | OpenAI Whisper (`whisper-1`) | Browser Native `Web Speech API / SpeechRecognition` (`en-IN`) |
+| **Voice Synthesis (TTS)** | OpenAI TTS (`tts-1` / `shimmer`) | Browser Native `SpeechSynthesis` with female Indian voice profile (`en-IN`) |
+| **Reasoning & Policy Engine** | GPT-4o-mini with Autonomous Function Calling | Deterministic Policy Engine with Rule-Based Guardrails |
+| **Tool Execution** | **Real** `get_order_details(order_id)` execution | **Real** `get_order_details(order_id)` execution against Mock DB |
+| **Order Scenarios** | `ORD-101`, `ORD-102`, `ORD-103`, invalid `ORD-999` | `ORD-101`, `ORD-102`, `ORD-103`, invalid `ORD-999` |
+| **Context Pronoun Linking** | Multi-turn chat message history | Reverse-traversal contextual anaphoric reference resolution |
+| **Post-Call Summary** | GPT-4o-mini structured JSON schema | Deterministic structured JSON summarizer |
+| **Cost to Evaluator** | Paid OpenAI API credits | **100% Free — Zero API Credits Needed** |
+
+### Why Free Demo Mode Exists:
+Evaluators and developers often face OpenAI credit exhaustion or rate limits (`429 Too Many Requests` / `insufficient_quota`). Rather than breaking the evaluation experience with a hard crash or requiring paid credits, the agent automatically and seamlessly activates **Free Local Demo Mode**. In Demo Mode, the tool calling against `ORD-101`, `ORD-102`, and `ORD-103`, brand policy guardrails, live audio visualizers, and JSON summary remain 100% operational.
+
+> **Note on Demo Mode Limitations**: While Demo Mode faithfully executes all assignment tools (`get_order_details`), enforces exact brand policies, and tracks conversational pronouns (*"cancel it"*), it relies on a deterministic intent classifier and the browser's speech synthesis engine rather than arbitrary open-domain LLM reasoning. For full open-ended conversational generation, a funded OpenAI API key can be entered anytime in the **API Settings** modal.
+
+---
+
+## 🌟 2.2 Thoughtful Real-World CX Enhancements (Going Beyond the Basics)
+
+*Rather than adding features purely for breadth or vanity metrics, the implementation prioritizes improvements that directly affect real-world voice CX quality:*
+
+1. **🎙️ Barge-In / Interruption Handling**: When Aria is speaking and the customer speaks or taps *Interrupt*, audio playback cuts off immediately, clearing queued buffers and capturing the customer's new utterance without race conditions or echo loops.
+2. **🧠 Intelligent Ambiguity Resolution**: When queries lack an order ID (e.g. *"Where is my order?"* or *"Cancel my order"*), Aria never hallucinates or guesses. She asks a polite clarifying question to collect the order ID.
+3. **🇮🇳 Natural Hinglish Understanding**: Tailored specifically for Indian customer support, Aria recognizes common Hinglish phrasing (*"Mera order ORD-101 kab aayega?"*, *"Isko cancel kar sakte hain?"*, *"COD milega?"*) and responds in a culturally natural, clear tone.
+4. **👩‍💼 Female Indian English Voice Priority**: Automatically selects the most natural browser `en-IN` female voice profile (Heera, Neerja, Raveena, Swara, Aditi) with graceful fallback.
+5. **✨ Polished Customer Support UX**: Clean luxury botanical aesthetic, responsive waveform visualizers, live state badges (*"Listening to you..."*, *"Aria is thinking..."*, *"Aria is speaking..."*), and 1-click evaluator test order helpers.
 
 ---
 

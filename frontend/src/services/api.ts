@@ -19,6 +19,8 @@ export const ApiService = {
   async checkHealth(customApiKey?: string): Promise<{
     status: string;
     hasApiKey: boolean;
+    isDemoMode?: boolean;
+    mode?: string;
     model: string;
     voice: string;
   }> {
@@ -50,6 +52,7 @@ export const ApiService = {
     reply: string;
     toolCallsExecuted: ToolExecutionRecord[];
     messages: any[];
+    isDemoMode?: boolean;
   }> {
     const res = await fetch(`${API_BASE}/chat`, {
       method: 'POST',

@@ -5,13 +5,15 @@ interface HeaderProps {
   onOpenKeyModal: () => void;
   hasServerKey: boolean;
   hasClientKey: boolean;
+  isDemoMode?: boolean;
   onOpenPolicyModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenKeyModal,
   hasServerKey,
-  hasClientKey
+  hasClientKey,
+  isDemoMode = true
 }) => {
   return (
     <header className="app-header">
@@ -29,22 +31,43 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.35rem 0.75rem',
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: '9999px',
-              border: '1px solid var(--border-glass)',
-              fontSize: '0.78rem',
-              color: hasServerKey || hasClientKey ? '#34d399' : '#fbbf24'
-            }}
-          >
-            <ShieldCheck size={14} />
-            <span>{hasServerKey ? 'Cloud AI Ready' : hasClientKey ? 'Custom Key Active' : 'Configure API Key'}</span>
-          </div>
+          {isDemoMode ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.35rem 0.75rem',
+                background: 'rgba(52, 211, 153, 0.12)',
+                borderRadius: '9999px',
+                border: '1px solid rgba(52, 211, 153, 0.3)',
+                fontSize: '0.78rem',
+                color: '#34d399',
+                fontWeight: 600
+              }}
+              title="Running in Free Local Demo Mode with real tool calls and policy guardrails"
+            >
+              <ShieldCheck size={14} />
+              <span>Demo Mode — Free</span>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.35rem 0.75rem',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: '9999px',
+                border: '1px solid var(--border-glass)',
+                fontSize: '0.78rem',
+                color: hasServerKey || hasClientKey ? '#34d399' : '#fbbf24'
+              }}
+            >
+              <ShieldCheck size={14} />
+              <span>{hasServerKey ? 'Cloud AI Ready' : 'Custom Key Active'}</span>
+            </div>
+          )}
 
           <button
             onClick={onOpenKeyModal}

@@ -30,11 +30,15 @@ export interface PostCallSummary {
   call_summary: string;
 }
 
+import { DemoService } from './demoService.js';
+
 export class AIService {
-  private static getClient(customApiKey?: string): OpenAI {
+  public static isDemoFallbackActive = false;
+
+  private static getClient(customApiKey?: string): OpenAI | null {
     const apiKey = customApiKey || CONFIG.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API Key is missing. Please configure OPENAI_API_KEY in .env or provide it in request.');
+    if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY_HERE') {
+      return null;
     }
     return new OpenAI({ apiKey });
   }
@@ -48,6 +52,14 @@ export class AIService {
     customApiKey?: string
   ): Promise<ChatResponse> {
     const openai = this.getClient(customApiKey);
+
+    // If no API key configured or fallback active, use deterministic DemoService with real tool calls
+    if (!openai) {
+      this.isDemoFallbackActive = true;
+      return DemoService.processChatTurn(conversationHistory, userMessage);
+    }
+
+    try {
 
     // Prepare message history with System prompt if not present
     const messages: ChatCompletionMessageParam[] = [];
@@ -154,7 +166,12 @@ export class AIService {
         messages
       };
     }
+  } catch (error: any) {
+    console.warn('OpenAI Chat API unavailable or quota exceeded (429). Falling back to Demo Mode:', error.message || error);
+    this.isDemoFallbackActive = true;
+    return DemoService.processChatTurn(conversationHistory, userMessage);
   }
+}
 
   /**
    * Transcribe user audio speech to text using Whisper
@@ -165,15 +182,23 @@ export class AIService {
     customApiKey?: string
   ): Promise<string> {
     const openai = this.getClient(customApiKey);
-    const file = await toFile(audioBuffer, filename);
+    if (!openai) {
+      return '';
+    }
 
-    const transcription = await openai.audio.transcriptions.create({
-      file: file,
-      model: 'whisper-1',
-      language: 'en'
-    });
-
-    return transcription.text;
+    try {
+      const file = await toFile(audioBuffer, filename);
+      const transcription = await openai.audio.transcriptions.create({
+        file: file,
+        model: 'whisper-1',
+        language: 'en'
+      });
+      return transcription.text;
+    } catch (error: any) {
+      console.warn('OpenAI Whisper STT unavailable (429/quota). Falling back to browser speech recognition:', error.message || error);
+      this.isDemoFallbackActive = true;
+      return '';
+    }
   }
 
   /**
@@ -184,16 +209,25 @@ export class AIService {
     customApiKey?: string
   ): Promise<Buffer> {
     const openai = this.getClient(customApiKey);
+    if (!openai) {
+      throw new Error('OpenAI client not available for server TTS; use browser speech synthesis.');
+    }
 
-    const response = await openai.audio.speech.create({
-      model: 'tts-1',
-      voice: (CONFIG.TTS_VOICE as any) || 'shimmer',
-      input: text,
-      speed: CONFIG.TTS_SPEED
-    });
+    try {
+      const response = await openai.audio.speech.create({
+        model: 'tts-1',
+        voice: (CONFIG.TTS_VOICE as any) || 'shimmer',
+        input: text,
+        speed: CONFIG.TTS_SPEED
+      });
 
-    const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch (error: any) {
+      console.warn('OpenAI TTS unavailable (429/quota). Falling back to browser speech synthesis:', error.message || error);
+      this.isDemoFallbackActive = true;
+      throw new Error('Server TTS unavailable; falling back to browser synthesis');
+    }
   }
 
   /**
@@ -204,12 +238,16 @@ export class AIService {
     customApiKey?: string
   ): Promise<PostCallSummary> {
     const openai = this.getClient(customApiKey);
+    if (!openai) {
+      return DemoService.generateSummary(transcript);
+    }
 
-    const transcriptText = transcript
-      .map((t) => `${t.role === 'user' ? 'Customer' : 'Aria'}: ${t.content}`)
-      .join('\n');
+    try {
+      const transcriptText = transcript
+        .map((t) => `${t.role === 'user' ? 'Customer' : 'Aria'}: ${t.content}`)
+        .join('\n');
 
-    const prompt = `You are the QA and Analytics engine for Aura Skincare customer support calls.
+      const prompt = `You are the QA and Analytics engine for Aura Skincare customer support calls.
 Analyze the following transcript of a customer conversation with Aria and produce a structured JSON summary.
 
 TRANSCRIPT:
@@ -231,32 +269,22 @@ You must return a valid JSON object matching this schema strictly:
 
 Do not hallucinate or invent fake order numbers. Return only valid JSON.`;
 
-    const response = await openai.chat.completions.create({
-      model: CONFIG.OPENAI_MODEL,
-      messages: [
-        { role: 'system', content: 'You are an expert CRM analysis system that outputs strictly valid JSON.' },
-        { role: 'user', content: prompt }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.1
-    });
+      const response = await openai.chat.completions.create({
+        model: CONFIG.OPENAI_MODEL,
+        messages: [
+          { role: 'system', content: 'You are an expert CRM analysis system that outputs strictly valid JSON.' },
+          { role: 'user', content: prompt }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.1
+      });
 
-    const content = response.choices[0]?.message?.content || '{}';
-    try {
+      const content = response.choices[0]?.message?.content || '{}';
       return JSON.parse(content) as PostCallSummary;
-    } catch {
-      return {
-        customer_intent: 'GENERAL_QUERY',
-        order_id: null,
-        customer_name: null,
-        product: null,
-        order_status: null,
-        actions_taken: ['Conversation completed'],
-        policy_referenced: null,
-        resolution_status: 'RESOLVED',
-        unresolved_reason: null,
-        call_summary: 'Call completed successfully.'
-      };
+    } catch (error: any) {
+      console.warn('OpenAI Summary API unavailable (429/quota). Falling back to DemoService summary:', error.message || error);
+      this.isDemoFallbackActive = true;
+      return DemoService.generateSummary(transcript);
     }
   }
 }

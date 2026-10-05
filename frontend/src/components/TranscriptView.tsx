@@ -13,10 +13,29 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({
   isCallActive,
   onPlaySpeech
 }) => {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const isUserScrolledUpRef = useRef<boolean>(false);
 
+  // Smart Auto-Scroll: Detect when the user deliberately scrolls up
+  const handleScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const threshold = 60; // pixels from bottom to be considered "at bottom"
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+    isUserScrolledUpRef.current = !isNearBottom;
+  };
+
+  // Follow new messages automatically only if user is near bottom
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    if (!isUserScrolledUpRef.current) {
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   }, [messages]);
 
   return (
@@ -42,7 +61,11 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({
         </div>
       </div>
 
-      <div className="transcript-messages">
+      <div
+        className="transcript-messages"
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+      >
         {messages.length === 0 ? (
           <div
             style={{
@@ -145,7 +168,6 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({
             </div>
           ))
         )}
-        <div ref={bottomRef} />
       </div>
     </div>
   );

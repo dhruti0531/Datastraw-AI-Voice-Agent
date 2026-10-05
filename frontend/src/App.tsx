@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header.tsx';
 import { VoiceControlHero } from './components/VoiceControlHero.tsx';
 import { TestOrdersHelper } from './components/TestOrdersHelper.tsx';
@@ -28,9 +28,12 @@ export const App: React.FC = () => {
     setIsSummaryModalOpen,
     errorMessage,
     audioAnalyser,
+    isDemoMode,
+    selectedVoiceName,
     startCall,
     endCall,
     executeTextTurn,
+    interruptPlayback,
     playAudio
   } = useVoiceAgent(customApiKey);
 
@@ -55,6 +58,19 @@ export const App: React.FC = () => {
     initData();
   }, [customApiKey]);
 
+  const leftColumnRef = useRef<HTMLDivElement | null>(null);
+  const rightColumnRef = useRef<HTMLDivElement | null>(null);
+
+  // Guarantee sidebars start cleanly at top (scrollTop: 0) on fresh page load
+  useEffect(() => {
+    if (leftColumnRef.current) {
+      leftColumnRef.current.scrollTop = 0;
+    }
+    if (rightColumnRef.current) {
+      rightColumnRef.current.scrollTop = 0;
+    }
+  }, []);
+
   const handleSaveApiKey = (newKey: string) => {
     setCustomApiKey(newKey);
     if (newKey) {
@@ -69,16 +85,17 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-root">
       <Header
         onOpenKeyModal={() => setIsKeyModalOpen(true)}
         hasServerKey={hasServerKey}
         hasClientKey={!!customApiKey}
+        isDemoMode={isDemoMode}
       />
 
       <main className="main-container">
         {/* Left Column: Voice Agent Controller & Policies */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div ref={leftColumnRef} className="dashboard-column left-column">
           <VoiceControlHero
             state={state}
             isCallActive={isCallActive}
@@ -87,12 +104,14 @@ export const App: React.FC = () => {
             audioAnalyser={audioAnalyser}
             errorMessage={errorMessage}
             isListeningMic={isListeningMic}
+            onInterrupt={interruptPlayback}
+            selectedVoiceName={selectedVoiceName}
           />
           <BrandPoliciesCard onSelectPrompt={handleQuickPrompt} />
         </div>
 
         {/* Center Column: Live Transcript */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="dashboard-column center-column">
           <TranscriptView
             messages={messages}
             isCallActive={isCallActive}
@@ -101,7 +120,7 @@ export const App: React.FC = () => {
         </div>
 
         {/* Right Column: Test Orders Helper */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div ref={rightColumnRef} className="dashboard-column right-column">
           <TestOrdersHelper
             orders={orders}
             onSelectPrompt={handleQuickPrompt}

@@ -15,10 +15,17 @@ function extractApiKey(req: Request): string | undefined {
 
 // 1. Health check & configuration status
 router.get('/health', (req: Request, res: Response) => {
+  const customApiKey = extractApiKey(req);
+  const effectiveKey = customApiKey || CONFIG.OPENAI_API_KEY;
+  const isConfigured = Boolean(effectiveKey && effectiveKey !== 'YOUR_OPENAI_API_KEY_HERE');
+  const isDemo = !isConfigured || AIService.isDemoFallbackActive;
+
   res.json({
     status: 'ok',
     service: 'Aura Skincare Voice Support Agent (Aria)',
-    hasApiKey: !!CONFIG.OPENAI_API_KEY || !!extractApiKey(req),
+    hasApiKey: isConfigured,
+    isDemoMode: isDemo,
+    mode: isDemo ? 'demo' : 'openai',
     model: CONFIG.OPENAI_MODEL,
     voice: CONFIG.TTS_VOICE,
     timestamp: new Date().toISOString()
@@ -147,9 +154,15 @@ router.post('/voice-turn', upload.single('audio'), async (req: Request, res: Res
     // Step 2: LLM Reasoning + Tool Execution
     const chatResult = await AIService.chat(conversationHistory, transcript, customApiKey);
 
-    // Step 3: TTS Synthesis
-    const audioBuffer = await AIService.synthesizeSpeech(chatResult.reply, customApiKey);
-    const audioBase64 = audioBuffer.toString('base64');
+    // Step 3: TTS Synthesis (with fallback to client SpeechSynthesis)
+    let audioBase64: string | null = null;
+    try {
+      const audioBuffer = await AIService.synthesizeSpeech(chatResult.reply, customApiKey);
+      audioBase64 = audioBuffer.toString('base64');
+    } catch {
+      // Client will use browser SpeechSynthesis
+      audioBase64 = null;
+    }
 
     res.json({
       success: true,
@@ -157,7 +170,8 @@ router.post('/voice-turn', upload.single('audio'), async (req: Request, res: Res
       reply: chatResult.reply,
       audioBase64: audioBase64,
       toolCallsExecuted: chatResult.toolCallsExecuted,
-      messages: chatResult.messages
+      messages: chatResult.messages,
+      isDemoMode: AIService.isDemoFallbackActive
     });
   } catch (error: any) {
     console.error('Voice turn error:', error);
