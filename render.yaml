@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: aura-skincare-voice-agent
+    env: node
+    plan: free
+    buildCommand: npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install && npm --prefix backend run build
+    startCommand: node backend/dist/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: TTS_VOICE
+        value: shimmer

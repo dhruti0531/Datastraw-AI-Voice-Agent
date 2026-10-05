@@ -1,0 +1,17 @@
+{
+  "name": "datastraw-aura-skincare-voice-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aura Skincare AI Voice Customer Support Agent (Aria) - Datastraw Tech Assessment",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "test": "npm --prefix backend test",
+    "start": "npm --prefix backend start"
+  },
+  "keywords": ["ai", "voice-agent", "aura-skincare", "aria", "datastraw", "customer-support", "realtime-voice"],
+  "author": "Antigravity AI Engineer",
+  "license": "MIT"
+}
