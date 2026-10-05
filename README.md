@@ -445,9 +445,9 @@ cd backend && npm test
 
 ### Submission Contents:
 
-1. **Application URL**: To be added after public deployment.
+1. **Application URL:** https://datastraw-ai-voice-agent-0osh.onrender.com
 2. **GitHub Repository**: https://github.com/dhruti0531/Datastraw-AI-Voice-Agent.git
-3. **Demo Video**: 3–5 minute walkthrough to be added before submission.
+3. **Demo Video**: https://drive.google.com/file/d/1Uu-TsGgdViSjz8fTsCO6AGewI5G63Gx6/view?usp=sharing
 4. **LinkedIn Profile**: https://www.linkedin.com/in/dhruti-mehta-49a11b28/
 5. **Approach Note**: Included above.
 
