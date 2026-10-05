@@ -285,8 +285,8 @@ When **End Call** is clicked, the backend analyzes the conversation and produces
 
 ### Clone & Install:
 ```bash
-git clone https://github.com/your-username/datastraw-aura-skincare-voice-agent.git
-cd datastraw-aura-skincare-voice-agent
+git clone https://github.com/dhruti0531/Datastraw-AI-Voice-Agent.git
+cd Datastraw-AI-Voice-Agent
 
 # Install all backend and frontend dependencies
 npm --prefix backend install
@@ -390,10 +390,16 @@ cd backend && npm test
 ---
 
 ## 🔮 19. Future Improvements
-1. **Real-time WebRTC Full-Duplex Audio**: Transition to direct WebRTC streaming for sub-200ms latency.
-2. **Barge-in / Interruption Handling**: Instantly cut off audio playback when user speech activity is detected mid-response.
-3. **Multi-lingual Hinglish Support**: Dynamic code-switching between Hindi and English based on customer preference.
-4. **CRM & Live Database Webhook**: Direct database mutations for cancelling processing orders in Shopify/WooCommerce.
+
+1. **Full-Duplex WebRTC Streaming**: Transition to direct WebRTC streaming for sub-200ms latency and a more natural real-time voice experience.
+
+2. **CRM & Live Database Integration**: Replace the in-memory mock order service with a production database and integrate with platforms such as Shopify or WooCommerce for live order status and supported order actions.
+
+3. **Multi-Language Expansion**: Extend voice support beyond English and Hinglish to additional Indian languages based on customer preferences.
+
+4. **Production-Grade Observability**: Add centralized logging, distributed tracing, latency monitoring, tool-error tracking, and conversation analytics for large-scale deployments.
+
+5. **Human Agent Escalation**: Add an escalation workflow that transfers complex or dissatisfied customers to human support agents with the complete conversation transcript and structured call summary.
 
 ---
 
@@ -412,7 +418,8 @@ cd backend && npm test
 > I resolved this by designing an autonomous function-calling loop: when an order ID is mentioned or referenced via context pronouns (*"it"*), the AI is mandated to execute `get_order_details` before generating a response. Furthermore, I built custom conversation history serialization that tracks tool calls alongside speech transcripts, feeding structured tool outputs back into the system prompt's guardrail rules.
 
 ### Q3: If you had one more week to work on this, what would you improve first and why?
-> **Answer**: I would implement **Full-Duplex WebRTC streaming with Barge-in / Interruption handling**. In a real customer service scenario, customers frequently interrupt to correct details or ask follow-ups. With WebRTC audio streaming and local voice activity detection (VAD), the client can immediately mute outgoing audio and stream new audio packets the millisecond the customer speaks, creating an ultra-responsive human-grade telephone experience.
+
+> **Answer**: I would implement **Full-Duplex WebRTC streaming** to further reduce voice latency and make the interaction feel closer to a natural telephone conversation. The current implementation already supports barge-in / interruption handling, but moving the audio pipeline to WebRTC with streaming VAD would improve responsiveness, reduce buffering overhead, and provide a more scalable foundation for real-world voice traffic.
 
 ### Q4: Imagine this agent is handling 1,000 customer conversations a day. What do you think would need to change or improve?
 > **Answer**:
@@ -427,18 +434,23 @@ cd backend && npm test
 ## 📦 21. Approach Note & Submission Package
 
 ### Approach Note:
-> *Built a production-grade full-stack AI Voice Agent for Aura Skincare utilizing React 19, Node.js, and OpenAI GPT-4o-mini with autonomous tool calling (`get_order_details`) and strict Indian brand policy guardrails. Engineered a low-latency voice pipeline combining Whisper STT, speech synthesis with Indian voice profile fallbacks, and real-time audio visualizers to deliver a natural, reliable customer support experience with automated post-call JSON summarization.*
+
+> Built a production-grade full-stack AI Voice Agent for Aura Skincare utilizing React 19, Node.js, and OpenAI GPT-4o-mini with autonomous tool calling (`get_order_details`) and strict Indian brand policy guardrails. Engineered a low-latency voice pipeline combining Whisper STT, speech synthesis with Indian voice profile fallbacks, and real-time audio visualizers to deliver a natural, reliable customer support experience with automated post-call JSON summarization.
 
 ### Submission Details:
+
 - **To**: `ozair.shaikh@datastraw.in`, `aryan.jaiswal@datastraw.in`
 - **CC**: `talent@datastraw.in`
-- **Subject**: `AI Voice Agent Assignment - [Your Full Name]`
-- **Contents**:
-  1. Application URL
-  2. GitHub Repository Link
-  3. Demo Video Link (3–5 min walkthrough)
-  4. LinkedIn Profile Link
-  5. 2–3 Sentence Approach Note
+- **Subject**: `AI Voice Agent Assignment - Dhruti Mehta`
+
+### Submission Contents:
+
+1. **Application URL**: To be added after public deployment.
+2. **GitHub Repository**: https://github.com/dhruti0531/Datastraw-AI-Voice-Agent.git
+3. **Demo Video**: 3–5 minute walkthrough to be added before submission.
+4. **LinkedIn Profile**: https://www.linkedin.com/in/dhruti-mehta-49a11b28/
+5. **Approach Note**: Included above.
 
 ---
+
 *Created with ❤️ for Aura Skincare & Datastraw Technologies.*
